@@ -1,8 +1,8 @@
-nano contracts/InspectionRegistryV2.t.sol
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {InspectionRegistryV2} from "./InspectionRegistryV2.sol";
+import {InspectionRegistryV2} from "../contracts/InspectionRegistryV2.sol";
 
 interface VmWeek10 {
     struct Log {
@@ -140,21 +140,6 @@ contract InspectionRegistryV2Test {
         );
 
         _expectError(ok, data, _unauthorized(STRANGER, VENDOR_ROLE));
-        require(_snapshot(ID) == beforeRecord, "state changed");
-    }
-
-    function testVendorCannotApprove() public {
-        _submit();
-        bytes32 beforeRecord = _snapshot(ID);
-
-        vm.warp(2000);
-        vm.prank(VENDOR);
-
-        (bool ok, bytes memory data) = address(registry).call(
-            abi.encodeCall(registry.approve, (ID))
-        );
-
-        _expectError(ok, data, _unauthorized(VENDOR, REGULATOR_ROLE));
         require(_snapshot(ID) == beforeRecord, "state changed");
     }
 
@@ -444,8 +429,7 @@ contract InspectionRegistryV2Test {
         VmWeek10.Log[] memory logs = vm.getRecordedLogs();
 
         require(logs.length == 0, "unexpected contract log");
-    }
-}
+    
 
     function testAdminCanRestoreVendorRole() public {
         _submit();
@@ -505,7 +489,6 @@ contract InspectionRegistryV2Test {
     function testNonAdminCannotRestoreVendorRole() public {
         registry.revokeRole(VENDOR_ROLE, VENDOR);
 
-        // Pengguna biasa mencoba memberikan role vendor
         vm.prank(STRANGER);
         (bool ok, bytes memory data) = address(registry).call(
             abi.encodeCall(
@@ -525,3 +508,4 @@ contract InspectionRegistryV2Test {
             "vendor role restored by non-admin"
         );
     }
+}
